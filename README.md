@@ -7,6 +7,7 @@ This program reads the OfflineList .cache-files and re-archived the files which 
 
 ## Setup
 Change the keys in the appsettings.json:
+
 |Key|Value|
 |---|---|
 |OfflineListCacheDirectory|The cache folder which belongs to OfflineList.|
