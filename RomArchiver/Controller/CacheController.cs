@@ -161,26 +161,6 @@ namespace RomLister.Controller
             string fileType = Utils.Utils.GetFileTypeValue(_fileType);
 
             string[] files = Directory.GetFiles(Path.Combine(_romLocation, fileType));
-            //Parallel.ForEach(files, f =>
-            //{
-            //    if (bgw.CancellationPending)
-            //    {
-            //        return;
-            //    }
-
-            //    //progress = (int)((float)i / (float)files.Length * 100);
-            //    //userFriendlyProgress = string.Format("{0}/{1}", i, files.Length);
-            //    bgw.ReportProgress(progress, userFriendlyProgress);
-
-            //    filePath = f;
-
-            //    DatCacheEntity datCacheEntity = new DatCacheEntity();
-            //    LoadSingleCache(filePath, datCacheEntity);
-
-            //    _datCacheEntities.Add(datCacheEntity);
-            //});
-
-            //TODO: This is not good!
 
             for (int i = 0; i < files.Length; i++)
             {
