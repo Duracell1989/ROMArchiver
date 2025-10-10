@@ -1,5 +1,4 @@
-﻿using SevenZip;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -7,8 +6,11 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using RomArchiver.Domain.Objects;
+using RomLister;
+using SevenZip;
 
-namespace RomLister.Controller
+namespace RomArchiver.Controller
 {
     internal class CacheController : IDisposable
     {
@@ -21,29 +23,16 @@ namespace RomLister.Controller
         internal event EmptyEventHandler OnCacheLoadingAborted;
         internal event EmptyEventHandler OnCacheLoadingCompleted;
 
-        private BackgroundWorker _backgroundWorker;
-        private string _offlineListCacheLocation = string.Empty;
-        private string _romLocation = string.Empty;
-        private RomType _fileType;
-        internal ConcurrentBag<DatCacheEntity> _datCacheEntities;
+        private readonly BackgroundWorker _backgroundWorker;
+        private readonly string _offlineListCacheLocation;
+        private readonly string _romLocation;
+        private ConcurrentBag<DatCacheEntity> _datCacheEntities;
 
-        internal Boolean IsLoadingCache
-        {
-            get
-            {
-                return _backgroundWorker.IsBusy;
-            }
-        }
+        internal bool IsLoadingCache => _backgroundWorker.IsBusy;
 
-        internal RomType RomType
-        {
-            get { return _fileType; }
-        }
+        internal RomType RomType { get; }
 
-        internal IEnumerable<DatCacheEntity> DatCacheEntities
-        {
-            get { return _datCacheEntities; }
-        }
+        internal IEnumerable<DatCacheEntity> DatCacheEntities => _datCacheEntities;
 
         internal CacheController(RomType fileType)
         {
@@ -60,15 +49,15 @@ namespace RomLister.Controller
 
             _offlineListCacheLocation = ConfigReader.Instance.OfflineListCacheDirectory;
             _romLocation = ConfigReader.Instance.RomDirectory;
-            _fileType = fileType;
+            RomType = fileType;
         }
 
         private string GetArchivedFilePath(string archiveFilePath, string archiveExtension)
         {
-            StringBuilder archivedFilePath = new StringBuilder(archiveFilePath);
-            archivedFilePath.Remove(0, archiveFilePath.LastIndexOf("\\") + 1);
+            var archivedFilePath = new StringBuilder(archiveFilePath);
+            archivedFilePath.Remove(0, archiveFilePath.LastIndexOf('\\') + 1);
             archivedFilePath.Replace(archiveExtension, string.Empty);
-            archivedFilePath.Append(string.Format(".{0}", _fileType.GetExtension()));
+            archivedFilePath.Append($".{RomType.GetExtension()}");
             return archivedFilePath.ToString();
         }
 
@@ -103,14 +92,14 @@ namespace RomLister.Controller
                 throw new InvalidDataException();
             }
 
-            File.WriteAllText(Path.Combine(_offlineListCacheLocation, Utils.Utils.GetCacheFileName(_fileType)), CreateFileContentForCache());
-            File.WriteAllText(Path.Combine(_offlineListCacheLocation, Utils.Utils.GetRezFileName(_fileType)), CreateFileContentForRez());
+            File.WriteAllText(Path.Combine(_offlineListCacheLocation, RomLister.Utils.Utils.GetCacheFileName(RomType)), CreateFileContentForCache());
+            File.WriteAllText(Path.Combine(_offlineListCacheLocation, RomLister.Utils.Utils.GetRezFileName(RomType)), CreateFileContentForRez());
         }
 
         private string CreateFileContentForCache()
         {
-            StringBuilder output = new StringBuilder();
-            foreach (DatCacheEntity datCacheEntity in _datCacheEntities.OrderBy(entity => entity.Crc))
+            var output = new StringBuilder();
+            foreach (var datCacheEntity in _datCacheEntities.OrderBy(entity => entity.Crc))
             {
                 output.Append($"{datCacheEntity.FilePath};");
                 output.Append($"{datCacheEntity.FilenameInArchive};");
@@ -125,11 +114,11 @@ namespace RomLister.Controller
 
         private string CreateFileContentForRez()
         {
-            StringBuilder output = new StringBuilder();
+            var output = new StringBuilder();
             IEnumerable<DatCacheEntity> tempdatCacheEntity = _datCacheEntities.Where(entity => entity.IsArchived).OrderBy(entity => entity.FilePath);
-            foreach (DatCacheEntity datCacheEntity in tempdatCacheEntity)
+            foreach (var datCacheEntity in tempdatCacheEntity)
             {
-                output.AppendLine($"{datCacheEntity.FilePath};{datCacheEntity.ModifyNo};{datCacheEntity.CompressedFileSize};{datCacheEntity.ArchiveType};{"9"};");
+                output.AppendLine($"{datCacheEntity.FilePath};{datCacheEntity.ModifyNo};{datCacheEntity.CompressedFileSize};{datCacheEntity.ArchiveType};9;");
             }
             return output.ToString();
         }
@@ -153,29 +142,29 @@ namespace RomLister.Controller
             }
         }
 
-        private Boolean ProcessDirectory(BackgroundWorker bgw)
+        private bool ProcessDirectory(BackgroundWorker bgw)
         {
-            int progress = 0;
-            string userFriendlyProgress = string.Empty;
-            string filePath = string.Empty;
-            string fileType = Utils.Utils.GetFileTypeValue(_fileType);
+            var progress = 0;
+            var userFriendlyProgress = string.Empty;
+            var filePath = string.Empty;
+            var fileType = RomLister.Utils.Utils.GetFileTypeValue(RomType);
 
-            string[] files = Directory.GetFiles(Path.Combine(_romLocation, fileType));
+            var files = Directory.GetFiles(Path.Combine(_romLocation, fileType));
 
-            for (int i = 0; i < files.Length; i++)
+            for (var i = 0; i < files.Length; i++)
             {
                 if (bgw.CancellationPending)
                 {
                     return false;
                 }
 
-                progress = (int)((float)i / (float)files.Length * 100);
+                progress = (int)(i / (float)files.Length * 100);
                 userFriendlyProgress = string.Format("{0}/{1}", i, files.Length);
                 bgw.ReportProgress(progress, userFriendlyProgress);
 
                 filePath = files[i];
 
-                DatCacheEntity datCacheEntity = new DatCacheEntity();
+                var datCacheEntity = new DatCacheEntity();
                 LoadSingleCache(filePath, datCacheEntity);
 
                 _datCacheEntities.Add(datCacheEntity);
@@ -183,9 +172,9 @@ namespace RomLister.Controller
             return true;
         }
 
-        private Boolean ProcessCacheFile(BackgroundWorker bgw)
+        private bool ProcessCacheFile(BackgroundWorker bgw)
         {
-            string cacheFilePath = Path.Combine(_offlineListCacheLocation, Utils.Utils.GetCacheFileName(_fileType));
+            var cacheFilePath = Path.Combine(_offlineListCacheLocation, RomLister.Utils.Utils.GetCacheFileName(RomType));
 
             if (File.Exists(cacheFilePath))
             {
@@ -206,31 +195,31 @@ namespace RomLister.Controller
             DatCacheEntity datCacheEntity = _datCacheEntities.FirstOrDefault(x => x.FilePath == subitems[0]);
             if (datCacheEntity != null)
             {
-                datCacheEntity.IsAltered = ((datCacheEntity.FilenameInArchive != subitems[1] || datCacheEntity.ModifyNo != Convert.ToUInt32(subitems[2]) || datCacheEntity.CompressedFileSize != (unchecked((Int32)Convert.ToInt64((subitems[3])))) || datCacheEntity.Crc != subitems[4]));
+                datCacheEntity.IsAltered = datCacheEntity.FilenameInArchive != subitems[1] || datCacheEntity.ModifyNo != Convert.ToUInt32(subitems[2]) || datCacheEntity.CompressedFileSize != (unchecked((int)Convert.ToInt64((subitems[3])))) || datCacheEntity.Crc != subitems[4];
             }
         }
 
-        private Boolean ProcessRezFile(BackgroundWorker bgw)
+        private bool ProcessRezFile(BackgroundWorker bgw)
         {
-            string rezFilePath = Path.Combine(_offlineListCacheLocation, Utils.Utils.GetRezFileName(_fileType));
+            var rezFilePath = Path.Combine(_offlineListCacheLocation, RomLister.Utils.Utils.GetRezFileName(RomType));
 
             if (File.Exists(rezFilePath))
             {
-                foreach (string item in File.ReadLines(rezFilePath).AsParallel())
+                foreach (var item in File.ReadLines(rezFilePath).AsParallel())
                 {
                     if (bgw.CancellationPending)
                     {
                         return false;
                     }
 
-                    string[] subitems = item.Split(";".ToArray());
+                    var subitems = item.Split(";".ToArray());
 
-                    DatCacheEntity datCacheEntity = _datCacheEntities.FirstOrDefault(x => x.FilePath == subitems[0]);
+                    var datCacheEntity = _datCacheEntities.FirstOrDefault(x => x.FilePath == subitems[0]);
                     if (datCacheEntity != null)
                     {
                         if (datCacheEntity.FilePath == subitems[0] &&
                             datCacheEntity.ModifyNo == Convert.ToUInt32(subitems[1]) &&
-                            datCacheEntity.CompressedFileSize == unchecked((Int32)Convert.ToInt64(subitems[2])) &&
+                            datCacheEntity.CompressedFileSize == unchecked((int)Convert.ToInt64(subitems[2])) &&
                             !datCacheEntity.IsAltered)
                         {
                             datCacheEntity.IsArchived = true;
@@ -244,18 +233,18 @@ namespace RomLister.Controller
 
         private void LoadSingleCache(string filePath, DatCacheEntity datCacheEntity)
         {
-            FileInfo fileInfo = new FileInfo(filePath);
-            string archivedFilePath = GetArchivedFilePath(fileInfo.FullName, fileInfo.Extension);
+            var fileInfo = new FileInfo(filePath);
+            var archivedFilePath = GetArchivedFilePath(fileInfo.FullName, fileInfo.Extension);
 
             datCacheEntity.FilePath = fileInfo.FullName;
             datCacheEntity.FilenameInArchive = archivedFilePath;
-            datCacheEntity.ModifyNo = Utils.Utils.CalculateModifyNumber(fileInfo.LastWriteTimeUtc);
+            datCacheEntity.ModifyNo = RomLister.Utils.Utils.CalculateModifyNumber(fileInfo.LastWriteTimeUtc);
 
             datCacheEntity.CompressedFileSize = unchecked((Int32)(fileInfo.Length));
             datCacheEntity.ArchiveType = fileInfo.Extension.Substring(1, fileInfo.Extension.Length - 1);
             datCacheEntity.Cleaned = true;
 
-            using (SevenZipExtractor sevenZipExtractor = new SevenZipExtractor(fileInfo.FullName))
+            using (var sevenZipExtractor = new SevenZipExtractor(fileInfo.FullName))
             {
                 datCacheEntity.Crc = sevenZipExtractor.ArchiveFileData[0].Crc.ToString("X8");
                 datCacheEntity.FileSize = sevenZipExtractor.ArchiveFileData[0].Size;
@@ -276,6 +265,10 @@ namespace RomLister.Controller
             }
             else
             {
+                var entitiesAsJson =  System.Text.Json.JsonSerializer.Serialize<ConcurrentBag<DatCacheEntity>>(_datCacheEntities);
+                var currentDirectory = Path.GetFullPath(Directory.GetCurrentDirectory());
+                File.WriteAllText(Path.Combine(currentDirectory, "data.json"), entitiesAsJson);
+                
                 Complete();
             }
         }
@@ -307,7 +300,7 @@ namespace RomLister.Controller
         #region "IDisposable"
 
         // Flag: Has Dispose already been called? 
-        bool disposed = false;
+        private bool _disposed = false;
 
         // private implementation of Dispose pattern callable by consumers. 
         public void Dispose()
@@ -319,7 +312,7 @@ namespace RomLister.Controller
         // Protected implementation of Dispose pattern. 
         protected virtual void Dispose(bool disposing)
         {
-            if (disposed)
+            if (_disposed)
                 return;
 
             if (disposing)
@@ -336,7 +329,7 @@ namespace RomLister.Controller
 
             // Free any unmanaged objects here. 
             //
-            disposed = true;
+            _disposed = true;
         }
 
         #endregion

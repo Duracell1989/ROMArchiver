@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
+using RomArchiver.Domain;
 
-namespace RomLister
+namespace RomArchiver
 {
     internal class SevenZipProcessor
     {
@@ -64,7 +65,7 @@ namespace RomLister
             }
         }
 
-        private void Process_Exited(object sender, EventArgs e)
+        private void Process_Exited(object? sender, EventArgs e)
         {
             _process.Close();
             _process.Dispose();
@@ -72,13 +73,13 @@ namespace RomLister
 
         private void Process_OutputDataReceived(object sender, DataReceivedEventArgs e)
         {
-            if (e.Data != null && e.Data.Contains("%"))
+            if (e.Data != null && e.Data.Contains('%'))
             {
-                string shouldBeProgress = e.Data.Substring(0, e.Data.IndexOf("%"));
+                var shouldBeProgress = e.Data.Substring(0, e.Data.IndexOf('%'));
 
                 if (int.TryParse(shouldBeProgress, out int progress))
                 {
-                    UpdateProgress(progress, _processInfo.UserfriendlyProgress(progress)); // TODO: better userfriendly message
+                    UpdateProgress(progress, _processInfo.UserfriendlyProgress(progress)); // TODO: better user friendly message
                 }
             }
         }

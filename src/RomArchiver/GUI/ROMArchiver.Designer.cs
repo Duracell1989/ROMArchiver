@@ -1,4 +1,4 @@
-﻿namespace RomLister
+﻿namespace RomArchiver.GUI
 {
     partial class MainForm
     {
@@ -28,112 +28,126 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
-            this.loadCacheButton = new System.Windows.Forms.Button();
-            this.progressInformationLabel = new System.Windows.Forms.Label();
-            this.folderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog();
-            this.InformationTextBox = new System.Windows.Forms.TextBox();
-            this.rearchiveButton = new System.Windows.Forms.Button();
-            this.RomTypeComboBox = new System.Windows.Forms.ComboBox();
-            this.progressProgressBar = new System.Windows.Forms.ProgressBar();
-            this.rearchiveProgressBar = new System.Windows.Forms.ProgressBar();
-            this.rearchiveProgressInformationLabel = new System.Windows.Forms.Label();
-            this.SuspendLayout();
+            openFileDialog = new System.Windows.Forms.OpenFileDialog();
+            loadCacheButton = new System.Windows.Forms.Button();
+            progressInformationLabel = new System.Windows.Forms.Label();
+            folderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog();
+            InformationTextBox = new System.Windows.Forms.TextBox();
+            rearchiveButton = new System.Windows.Forms.Button();
+            RomTypeComboBox = new System.Windows.Forms.ComboBox();
+            progressProgressBar = new System.Windows.Forms.ProgressBar();
+            rearchiveProgressBar = new System.Windows.Forms.ProgressBar();
+            rearchiveProgressInformationLabel = new System.Windows.Forms.Label();
+            SuspendLayout();
             // 
             // openFileDialog
             // 
-            this.openFileDialog.FileName = "openFileDialog";
+            openFileDialog.FileName = "openFileDialog";
             // 
             // loadCacheButton
             // 
-            this.loadCacheButton.Location = new System.Drawing.Point(12, 12);
-            this.loadCacheButton.Name = "loadCacheButton";
-            this.loadCacheButton.Size = new System.Drawing.Size(156, 23);
-            this.loadCacheButton.TabIndex = 0;
-            this.loadCacheButton.Text = "Load Cache";
-            this.loadCacheButton.UseVisualStyleBackColor = true;
-            this.loadCacheButton.Click += new System.EventHandler(this.LoadCacheButton_Click);
+            loadCacheButton.Location = new System.Drawing.Point(14, 14);
+            loadCacheButton.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            loadCacheButton.Name = "loadCacheButton";
+            loadCacheButton.Size = new System.Drawing.Size(182, 27);
+            loadCacheButton.TabIndex = 0;
+            loadCacheButton.Text = "Load Cache";
+            loadCacheButton.UseVisualStyleBackColor = true;
+            loadCacheButton.Click += LoadCacheButton_Click;
             // 
             // progressInformationLabel
             // 
-            this.progressInformationLabel.AutoSize = true;
-            this.progressInformationLabel.Location = new System.Drawing.Point(12, 203);
-            this.progressInformationLabel.Name = "progressInformationLabel";
-            this.progressInformationLabel.Size = new System.Drawing.Size(0, 13);
-            this.progressInformationLabel.TabIndex = 4;
+            progressInformationLabel.AutoSize = true;
+            progressInformationLabel.Location = new System.Drawing.Point(14, 53);
+            progressInformationLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            progressInformationLabel.Name = "progressInformationLabel";
+            progressInformationLabel.Size = new System.Drawing.Size(41, 15);
+            progressInformationLabel.TabIndex = 4;
+            progressInformationLabel.Text = "empty";
             // 
             // InformationTextBox
             // 
-            this.InformationTextBox.Location = new System.Drawing.Point(12, 41);
-            this.InformationTextBox.Multiline = true;
-            this.InformationTextBox.Name = "InformationTextBox";
-            this.InformationTextBox.ReadOnly = true;
-            this.InformationTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.InformationTextBox.Size = new System.Drawing.Size(290, 130);
-            this.InformationTextBox.TabIndex = 2;
-            this.InformationTextBox.WordWrap = false;
+            InformationTextBox.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+            InformationTextBox.Location = new System.Drawing.Point(14, 146);
+            InformationTextBox.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            InformationTextBox.Multiline = true;
+            InformationTextBox.Name = "InformationTextBox";
+            InformationTextBox.ReadOnly = true;
+            InformationTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            InformationTextBox.Size = new System.Drawing.Size(476, 289);
+            InformationTextBox.TabIndex = 2;
+            InformationTextBox.WordWrap = false;
             // 
             // rearchiveButton
             // 
-            this.rearchiveButton.Location = new System.Drawing.Point(12, 219);
-            this.rearchiveButton.Name = "rearchiveButton";
-            this.rearchiveButton.Size = new System.Drawing.Size(100, 23);
-            this.rearchiveButton.TabIndex = 5;
-            this.rearchiveButton.Text = "Start archiving";
-            this.rearchiveButton.UseVisualStyleBackColor = true;
-            this.rearchiveButton.Click += new System.EventHandler(this.RearchiveButton_Click);
+            rearchiveButton.Location = new System.Drawing.Point(14, 80);
+            rearchiveButton.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            rearchiveButton.Name = "rearchiveButton";
+            rearchiveButton.Size = new System.Drawing.Size(117, 27);
+            rearchiveButton.TabIndex = 5;
+            rearchiveButton.Text = "Start archiving";
+            rearchiveButton.UseVisualStyleBackColor = true;
+            rearchiveButton.Click += RearchiveButton_Click;
             // 
             // RomTypeComboBox
             // 
-            this.RomTypeComboBox.FormattingEnabled = true;
-            this.RomTypeComboBox.Location = new System.Drawing.Point(181, 14);
-            this.RomTypeComboBox.Name = "RomTypeComboBox";
-            this.RomTypeComboBox.Size = new System.Drawing.Size(121, 21);
-            this.RomTypeComboBox.TabIndex = 1;
-            this.RomTypeComboBox.SelectedIndexChanged += new System.EventHandler(this.RomTypeComboBox_SelectedIndexChanged);
+            RomTypeComboBox.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+            RomTypeComboBox.FormattingEnabled = true;
+            RomTypeComboBox.Location = new System.Drawing.Point(211, 16);
+            RomTypeComboBox.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            RomTypeComboBox.Name = "RomTypeComboBox";
+            RomTypeComboBox.Size = new System.Drawing.Size(279, 23);
+            RomTypeComboBox.TabIndex = 1;
+            RomTypeComboBox.SelectedIndexChanged += RomTypeComboBox_SelectedIndexChanged;
             // 
             // progressProgressBar
             // 
-            this.progressProgressBar.Location = new System.Drawing.Point(12, 177);
-            this.progressProgressBar.Name = "progressProgressBar";
-            this.progressProgressBar.Size = new System.Drawing.Size(290, 23);
-            this.progressProgressBar.TabIndex = 3;
+            progressProgressBar.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+            progressProgressBar.Location = new System.Drawing.Point(14, 47);
+            progressProgressBar.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            progressProgressBar.Name = "progressProgressBar";
+            progressProgressBar.Size = new System.Drawing.Size(476, 27);
+            progressProgressBar.TabIndex = 3;
             // 
             // rearchiveProgressBar
             // 
-            this.rearchiveProgressBar.Location = new System.Drawing.Point(12, 248);
-            this.rearchiveProgressBar.Name = "rearchiveProgressBar";
-            this.rearchiveProgressBar.Size = new System.Drawing.Size(290, 23);
-            this.rearchiveProgressBar.TabIndex = 6;
+            rearchiveProgressBar.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+            rearchiveProgressBar.Location = new System.Drawing.Point(13, 113);
+            rearchiveProgressBar.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            rearchiveProgressBar.Name = "rearchiveProgressBar";
+            rearchiveProgressBar.Size = new System.Drawing.Size(476, 27);
+            rearchiveProgressBar.TabIndex = 6;
             // 
             // rearchiveProgressInformationLabel
             // 
-            this.rearchiveProgressInformationLabel.AutoSize = true;
-            this.rearchiveProgressInformationLabel.Location = new System.Drawing.Point(12, 274);
-            this.rearchiveProgressInformationLabel.Name = "rearchiveProgressInformationLabel";
-            this.rearchiveProgressInformationLabel.Size = new System.Drawing.Size(0, 13);
-            this.rearchiveProgressInformationLabel.TabIndex = 7;
+            rearchiveProgressInformationLabel.AutoSize = true;
+            rearchiveProgressInformationLabel.Location = new System.Drawing.Point(14, 119);
+            rearchiveProgressInformationLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            rearchiveProgressInformationLabel.Name = "rearchiveProgressInformationLabel";
+            rearchiveProgressInformationLabel.Size = new System.Drawing.Size(41, 15);
+            rearchiveProgressInformationLabel.TabIndex = 7;
+            rearchiveProgressInformationLabel.Text = "empty";
             // 
             // MainForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(314, 302);
-            this.Controls.Add(this.rearchiveProgressInformationLabel);
-            this.Controls.Add(this.rearchiveProgressBar);
-            this.Controls.Add(this.progressProgressBar);
-            this.Controls.Add(this.RomTypeComboBox);
-            this.Controls.Add(this.rearchiveButton);
-            this.Controls.Add(this.InformationTextBox);
-            this.Controls.Add(this.progressInformationLabel);
-            this.Controls.Add(this.loadCacheButton);
-            this.MinimumSize = new System.Drawing.Size(330, 340);
-            this.Name = "MainForm";
-            this.Text = "Rom Archiver";
-            this.Load += new System.EventHandler(this.MainForm_Load);
-            this.ResumeLayout(false);
-            this.PerformLayout();
-
+            AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            ClientSize = new System.Drawing.Size(502, 443);
+            Controls.Add(rearchiveProgressInformationLabel);
+            Controls.Add(RomTypeComboBox);
+            Controls.Add(rearchiveButton);
+            Controls.Add(InformationTextBox);
+            Controls.Add(progressInformationLabel);
+            Controls.Add(loadCacheButton);
+            Controls.Add(rearchiveProgressBar);
+            Controls.Add(progressProgressBar);
+            Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            MinimumSize = new System.Drawing.Size(382, 386);
+            Name = "MainForm";
+            Text = "Rom Archiver";
+            Load += MainForm_Load;
+            ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion

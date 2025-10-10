@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using RomArchiver.Domain.Objects;
+using RomLister;
 
-namespace RomLister.Controller
+namespace RomArchiver.Controller
 {
     internal class RezController
     {
@@ -45,14 +47,14 @@ namespace RomLister.Controller
 
         private void backgroundWorker_DoWork(object sender, DoWorkEventArgs e)
         {
-            string filePath = Path.Combine(_offlineListCacheLocation, Utils.Utils.GetRezFileName(_fileType));
+            string filePath = Path.Combine(_offlineListCacheLocation, RomLister.Utils.Utils.GetRezFileName(_fileType));
             if (File.Exists(filePath))
             {
-                List<string> lines = File.ReadLines(Path.Combine(_offlineListCacheLocation, Utils.Utils.GetRezFileName(_fileType))).ToList();
+                List<string> lines = File.ReadLines(Path.Combine(_offlineListCacheLocation, RomLister.Utils.Utils.GetRezFileName(_fileType))).ToList();
 
                 for (int i = 0; i < lines.Count; i++)
                 {
-                    _backgroundWorker.ReportProgress((int)((float)i / (float)lines.Count * 100));
+                    _backgroundWorker.ReportProgress((int)(i / (float)lines.Count * 100));
 
                     string[] items = lines[i].Split(';');
                     DatRezEntity datRezEntity = new DatRezEntity();

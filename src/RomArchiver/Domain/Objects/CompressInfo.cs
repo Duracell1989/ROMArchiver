@@ -2,25 +2,24 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace RomLister
+namespace RomArchiver.Domain.Objects
 {
     internal class CompressInfo : IProcessInfo
     {
-        private string _fileName;
-        private string _archiveName;
-        private string _workingDir;
-        private List<string> _arguments = new List<string>();
+        private readonly string _fileName;
+        private readonly string _archiveName;
+        private readonly List<string> _arguments = new();
 
         public string Arguments
         {
             get
             {
-                StringBuilder sb = new StringBuilder();
+                var sb = new StringBuilder();
                 sb.Append("a");
                 sb.Append($" \"{_archiveName}\"");
                 sb.Append($" \"{_fileName}\"");
 
-                foreach (string argument in _arguments)
+                foreach (var argument in _arguments)
                 {
                     sb.Append($" {argument}");
                 }
@@ -32,7 +31,6 @@ namespace RomLister
         {
             _fileName = fileName;
             _archiveName = archiveName;
-            _workingDir = workingDir;
             _arguments.Add("-bso0"); // Set output to disable
             _arguments.Add("-bsp1"); // Set progress to stdout
             _arguments.Add("-bse2"); // Set error to stderr
@@ -42,17 +40,17 @@ namespace RomLister
             _arguments.Add("-sdel"); // Delete files after compression
             _arguments.Add("-mhc=on"); //Enables archive header compressing.
             _arguments.Add("-ma=1"); // Sets compression mode: 0 = fast, 1 = normal. Default value is 1.
-            _arguments.Add("-mmf=bt4"); // Sets Match Finder for LZMA. Default method is bt4 [bt2;bt3;bt4;hc4]
+            _arguments.Add("-mmf=bt5"); // Sets Match Finder for LZMA. Default method is bt4 [bt2;bt3;bt4;bt5;hc4;hc5]
             _arguments.Add("-mmc=1000000000"); //Sets number of cycles (passes) for match finder. [0 ... 1000000000]
 
             /*
             Sets Dictionary size for LZMA [2^(1...30); 1536m]
             If you do not specify any symbol from the set [b|k|m], the dictionary size will be calculated as DictionarySize = 2^Size bytes
             */
-            _arguments.Add("-md=1536m"); //Sets Dictionary size for LZMA to highest available
+            _arguments.Add("-md=1536m"); //Sets Dictionary size for LZMA to the highest available
             _arguments.Add("-mfb=273"); // Sets number of fast bytes for LZMA. (5 ... 273)
             _arguments.Add("-y");
-            _arguments.Add($" -w\"{_workingDir}\"");
+            _arguments.Add($" -w\"{workingDir}\"");
         }
 
         public string UserfriendlyProgress(int progress)

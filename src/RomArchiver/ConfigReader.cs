@@ -1,28 +1,25 @@
 ﻿using System.Configuration;
 
-namespace RomLister
+namespace RomArchiver
 {
     internal class ConfigReader
     {
-        private static ConfigReader _instance;
+        private static ConfigReader? _instance;
 
         internal static ConfigReader Instance
         {
             get
             {
-                if (_instance == null)
-                {
-                    _instance = new ConfigReader();
-                }
+                _instance ??= new ConfigReader();
                 return _instance;
             }
         }
 
-        internal string OfflineListCacheDirectory { get; } = string.Empty;
+        internal string OfflineListCacheDirectory { get; }
 
         internal string SevenZipExecutablePath { get; }
 
-        internal string RomDirectory { get; } = string.Empty;
+        internal string RomDirectory { get; }
 
         internal string WorkingDirectory { get; }
 
@@ -32,11 +29,6 @@ namespace RomLister
             RomDirectory = ConfigurationManager.AppSettings["RomDirectory"];
             SevenZipExecutablePath = ConfigurationManager.AppSettings["SevenZipExecutablePath"];
             WorkingDirectory = ConfigurationManager.AppSettings["WorkingDirectory"];
-        }
-
-        public bool VerifyConfig()
-        {
-            return true;
         }
     }
 }

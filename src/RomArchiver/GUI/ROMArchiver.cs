@@ -1,12 +1,16 @@
-﻿using RomLister.Controller;
-using RomLister.Utils.Extensions;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Windows.Forms;
+using RomArchiver.Controller;
+using RomArchiver.Domain.Objects;
+using RomArchiver.Utils.Extensions;
+using RomLister;
 
-namespace RomLister
+namespace RomArchiver.GUI
 {
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     internal partial class MainForm : Form
     {
         private CacheController _cacheController;
@@ -16,12 +20,14 @@ namespace RomLister
         {
             InitializeComponent();
             this.Text = $"Rom Archiver {System.Reflection.Assembly.GetEntryAssembly().GetName().Version}";
+            progressInformationLabel.Text = string.Empty;
+            rearchiveProgressInformationLabel.Text = string.Empty;
         }
 
         private void MainForm_Load(object sender, EventArgs e)
         {
-            List<KeyValuePair<RomType, string>> romTypeDataSource = new List<KeyValuePair<RomType, string>>();
-            foreach (RomType fileType in Enum.GetValues(typeof(RomType)))
+            var romTypeDataSource = new List<KeyValuePair<RomType, string>>();
+            foreach (var fileType in Enum.GetValues<RomType>())
             {
                 romTypeDataSource.Add(new KeyValuePair<RomType, string>(fileType, fileType.GetUserFriendlyName()));
             }
@@ -30,11 +36,11 @@ namespace RomLister
             RomTypeComboBox.DisplayMember = "value";
         }
 
-        private void UpdateFilesToRearchve()
+        private void UpdateFilesToRearchive()
         {
-            int filesToRearchiveCount = _cacheController.DatCacheEntities.Count(x => x.IsAltered || !x.IsArchived);
-            int total = _cacheController.DatCacheEntities.Count();
-            string message = string.Format("{0}/{1} files need rearchiving.", filesToRearchiveCount, total);
+            var filesToRearchiveCount = _cacheController.DatCacheEntities.Count(x => x.IsAltered || !x.IsArchived);
+            var total = _cacheController.DatCacheEntities.Count();
+            var message = $"{filesToRearchiveCount}/{total} files need rearchiving.";
             InformationTextBox.AppendTextWithNewLine(message);
         }
 
@@ -144,37 +150,37 @@ namespace RomLister
 
         private void _cacheController_OnCacheLoadingStarted()
         {
-            string message = string.Format("Reading {0} cache...", _cacheController.RomType.GetUserFriendlyName());
+            var message = $"Reading {_cacheController.RomType.GetUserFriendlyName()} cache...";
             InformationTextBox.AppendTextWithNewLine(message);
             progressInformationLabel.Text = message;
         }
 
         private void _cacheController_OnCacheLoadingAborted()
         {
-            string message = string.Format("{0} Cache loading aborted.", _cacheController.RomType.GetUserFriendlyName());
+            var message = $"{_cacheController.RomType.GetUserFriendlyName()} Cache loading aborted.";
             InformationTextBox.AppendTextWithNewLine(message);
             progressInformationLabel.Text = message;
             progressProgressBar.Value = 0;
 
             UpdateLoadCacheButton();
-            UpdateFilesToRearchve();
+            UpdateFilesToRearchive();
         }
 
         private void _cacheController_OnCacheCompleted()
         {
-            string message = string.Format("{0} Cache loaded.", _cacheController.RomType.GetUserFriendlyName());
+            var message = $"{_cacheController.RomType.GetUserFriendlyName()} Cache loaded.";
             InformationTextBox.AppendTextWithNewLine(message);
             progressInformationLabel.Text = message;
             progressProgressBar.Value = 100;
 
             UpdateLoadCacheButton();
-            UpdateFilesToRearchve();
+            UpdateFilesToRearchive();
             _cacheController.WriteCache();
         }
 
         private void _cacheController_OnProgressChanged(int progress, string userFriendlyProgress)
         {
-            string message = string.Format("Reading {0} cache...{1}", _cacheController.RomType.GetUserFriendlyName(), userFriendlyProgress);
+            var message = $"Reading {_cacheController.RomType.GetUserFriendlyName()} cache...{userFriendlyProgress}";
             progressInformationLabel.Text = message;
             progressProgressBar.Value = progress;
         }
@@ -216,7 +222,7 @@ namespace RomLister
         {
             if (InvokeRequired)
             {
-                Invoke(new Action<string>(ArchiveController_OnExceptionOccured), new object[] { errorMessage });
+                Invoke(new Action<string>(ArchiveController_OnExceptionOccured), errorMessage);
                 return;
             }
             InformationTextBox.AppendTextWithNewLine(errorMessage);
@@ -226,7 +232,7 @@ namespace RomLister
         {
             if (InvokeRequired)
             {
-                Invoke(new Action<int, string>(ArchiveController_OnProgressChanged), new object[] { progress, userFriendlyProgress });
+                Invoke(new Action<int, string>(ArchiveController_OnProgressChanged), progress, userFriendlyProgress);
                 return;
             }
             rearchiveProgressInformationLabel.Text = userFriendlyProgress;
@@ -237,7 +243,7 @@ namespace RomLister
         {
             if (InvokeRequired)
             {
-                Invoke(new Action<int, string>(ArchiveController_OnOverallProgressChanged), new object[] { progress, userFriendlyProgress });
+                Invoke(new Action<int, string>(ArchiveController_OnOverallProgressChanged), progress, userFriendlyProgress);
                 return;
             }
             progressProgressBar.Value = progress;
@@ -248,24 +254,39 @@ namespace RomLister
         {
             if (InvokeRequired)
             {
-                Invoke(new Action<DatCacheEntity>(ArchiveController_OnRearchiveStarted), new object[] { datCacheEntity });
+                Invoke(new Action<DatCacheEntity>(ArchiveController_OnRearchiveStarted), datCacheEntity);
                 return;
             }
 
-            string message = string.Format("Re-Archiving: '{0}'", datCacheEntity.FilenameInArchive);
+            var message = $"Re-Archiving: '{datCacheEntity.FilenameInArchive}'";
             InformationTextBox.AppendTextWithNewLine(message);
         }
 
-        private void ArchiveController_OnRearchiveCompleted(DatCacheEntity datCacheEntity)
+        private void ArchiveController_OnRearchiveCompleted(DatCacheEntity datCacheEntity, long oldFileSize, long newFileSize)
         {
             if (InvokeRequired)
             {
-                Invoke(new Action<DatCacheEntity>(ArchiveController_OnRearchiveCompleted), new object[] { datCacheEntity });
+                Invoke(new Action<DatCacheEntity, long, long>(ArchiveController_OnRearchiveCompleted), new object[] { datCacheEntity, oldFileSize,newFileSize });
                 return;
             }
 
-            string message = string.Format("Re-Archiving: '{0}' done.", datCacheEntity.FilenameInArchive);
-            InformationTextBox.AppendTextWithNewLine(message);
+            var fileDifference = oldFileSize - newFileSize;
+            var symbol = fileDifference > 0 ? "+" : string.Empty;
+
+
+            var message = new StringBuilder();
+            if(fileDifference != 0)
+            {
+                message.AppendLine($"Re-Archiving: {symbol}{fileDifference:n0}bytes.");
+                message.AppendLine($"Re-Archiving: From {oldFileSize:n0}bytes to {newFileSize:n0} bytes. {symbol}{fileDifference:n0}bytes.");
+            }
+            else
+            {
+                message.AppendLine($"Re-Archiving: No size changed. Still: {symbol}{newFileSize:n0}bytes.");
+            }
+
+            message.AppendLine($"Re-Archiving: '{datCacheEntity.FilenameInArchive}' done.");
+            InformationTextBox.AppendTextWithNewLine(message.ToString());
             _cacheController.RefreshSingleEntity(datCacheEntity);
         }
 
@@ -278,9 +299,9 @@ namespace RomLister
                 return;
             }
 
-            string message = "Rearchive started.";
+            const string message = "Rearchive started.";
             InformationTextBox.AppendTextWithNewLine(message);
-            InformationTextBox.AppendTextWithNewLine(string.Format("{0} files to re-archive.", filesToRearchive));
+            InformationTextBox.AppendTextWithNewLine($"{filesToRearchive} files to re-archive.");
 
             progressProgressBar.Value = 0;
             progressInformationLabel.Text = message;
@@ -290,10 +311,11 @@ namespace RomLister
         {
             if (InvokeRequired)
             {
-                Invoke(new Action(ArchiveController_OnRearchiveOverallAborted));
+                Invoke(ArchiveController_OnRearchiveOverallAborted);
                 return;
             }
-            string message = string.Format("Re-Archiving: aborted.");
+            
+            const string message = "Re-Archiving: aborted.";
             InformationTextBox.AppendTextWithNewLine(message);
             ClearRearchivingProgress();
             UpdateRearchiveButton();
@@ -305,10 +327,11 @@ namespace RomLister
         {
             if (InvokeRequired)
             {
-                Invoke(new Action(ArchiveController_OnRearchiveOverallCompleted));
+                Invoke(ArchiveController_OnRearchiveOverallCompleted);
                 return;
             }
-            string message = string.Format("Re-Archiving: done.");
+            
+            const string message = "Re-Archiving: done.";
             InformationTextBox.AppendTextWithNewLine(message);
             progressInformationLabel.Text = message;
             progressProgressBar.Value = 100;

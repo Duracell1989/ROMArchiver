@@ -1,10 +1,13 @@
-﻿using System;
+﻿using RomLister;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using RomArchiver.Domain;
+using RomArchiver.Domain.Objects;
 
-namespace RomLister.Controller
+namespace RomArchiver.Controller
 {
     internal class ArchiveController : IDisposable
     {
@@ -12,6 +15,8 @@ namespace RomLister.Controller
         internal delegate void EmptyEventHandler();
         internal delegate void ExceptionOccuredHandler(string errorMessage);
         internal delegate void RearchiveHandler(DatCacheEntity datCacheEntity);
+        
+        internal delegate void RearchiveCompletedHandler(DatCacheEntity datCacheEntity, long oldFileSize, long newFileSize);
         internal delegate void RearchiveOverallStartedHandler(int filesToRearchive);
 
         internal event ProgressChangedHandler OnProgressChanged;
@@ -22,14 +27,14 @@ namespace RomLister.Controller
         internal event EmptyEventHandler OnRearchiveOverallAborted;
         internal event EmptyEventHandler OnRearchiveOverallCompleted;
         internal event RearchiveHandler OnRearchiveStarted;
-        internal event RearchiveHandler OnRearchiveCompleted;
+        internal event RearchiveCompletedHandler OnRearchiveCompleted;
 
         private BackgroundWorker _backgroundWorker;
 
         private SevenZipProcessor _sevenZipProcessor;
         private IEnumerable<DatCacheEntity> _datCacheEntities;
 
-        internal Boolean IsArchiving
+        internal bool IsArchiving
         {
             get
             {
@@ -37,7 +42,7 @@ namespace RomLister.Controller
             }
         }
 
-        internal Boolean IsAbortPending
+        internal bool IsAbortPending
         {
             get { return _backgroundWorker.CancellationPending; }
         }
@@ -84,8 +89,10 @@ namespace RomLister.Controller
             {
                 DatCacheEntity datCacheEntity = _datCacheEntities.ElementAt(i);
                 RearchiveStarted(datCacheEntity);
-
-                progress = (int)((float)i / (float)totalCount * 100);
+                
+                var oldFileSize = datCacheEntity.CompressedFileSize;
+                
+                progress = (int)(i / (float)totalCount * 100);
                 OverallProgressChanged(progress, string.Format("{0}/{1}", i, totalCount));
 
                 if (bgw.CancellationPending)
@@ -123,14 +130,17 @@ namespace RomLister.Controller
                     e.Cancel = true;
                     return;
                 }
+                
+                var newFileSize = new FileInfo(datCacheEntity.FilePath).Length;
 
                 datCacheEntity.IsArchived = true;
                 datCacheEntity.IsAltered = false;
 
-                RearchiveCompleted(datCacheEntity);
+                RearchiveCompleted(datCacheEntity, oldFileSize, newFileSize);
             }
             RearchiveOverallCompleted();
         }
+        
 
         private void _sevenZipProcessor_OnExceptionOccured(string errorMessage)
         {
@@ -233,12 +243,12 @@ namespace RomLister.Controller
             }
         }
 
-        private void RearchiveCompleted(DatCacheEntity datCacheEntity)
+        private void RearchiveCompleted(DatCacheEntity datCacheEntity, long oldFileSize, long newFileSize)
         {
             // Make sure someone is listening to event
             if (OnRearchiveCompleted != null)
             {
-                OnRearchiveCompleted(datCacheEntity);
+                OnRearchiveCompleted(datCacheEntity, oldFileSize, newFileSize);
             }
         }
 

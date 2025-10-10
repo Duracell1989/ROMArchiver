@@ -2,8 +2,11 @@
 
 ## General
 This project was setup in 2013 after using another program called OfflineList.
-I wasn't pleased with the (limited) (re-)archiving possiblities, which consisted of a very low compression rate.
-This program reads the OfflineList .cache-files and re-archived the files which are present in the .cache-files with a much better compression rate and then updates the .cache-file to indicate the new file-size - so that OfflineList still thinks that nothing has changed and sees the files/cache as valid.
+The (re-)archiving possiblities within this application were limited (consisted of a very low compression rate) and didn't support the latest (better) archiving options.
+This program works as follows:
+- It reads the OfflineList .cache-files
+- and re-archived the files which are present in the .cache-files but with a much better compression rate
+- then updates the .cache-file to indicate the new file-size - so that OfflineList still thinks that nothing has changed and sees the files/cache as valid.
 
 ## Setup
 Change the keys in the appsettings.json:

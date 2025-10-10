@@ -30,7 +30,7 @@
     <UseVSHostingProcess>false</UseVSHostingProcess>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Squid-Box.SevenZipSharp" Version="1.2.184" />
+    <PackageReference Include="Squid-Box.SevenZipSharp" Version="1.6.2.24" />
     <PackageReference Include="System.Collections.Immutable" Version="9.0.9" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.9" />
   </ItemGroup>

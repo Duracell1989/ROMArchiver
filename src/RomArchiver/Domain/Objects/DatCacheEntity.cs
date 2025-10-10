@@ -1,6 +1,7 @@
 ﻿using System;
+using System.Text.Json.Serialization;
 
-namespace RomLister
+namespace RomArchiver.Domain.Objects
 {
     internal class DatCacheEntity
     {
@@ -39,7 +40,8 @@ namespace RomLister
             set { _ModifyNo = value; }
         }
 
-        internal string Crc
+        [JsonPropertyName("CRC")]
+        public string Crc
         {
             get { return _crc; }
             set { _crc = value; }
@@ -80,7 +82,7 @@ namespace RomLister
             set { _fileSize = value; }
         }
 
-        internal DatCacheEntity()
+        public DatCacheEntity()
         {
         }
     }

@@ -1,4 +1,4 @@
-﻿namespace RomLister
+﻿namespace RomArchiver.Domain
 {
     internal interface IProcessInfo
     {
