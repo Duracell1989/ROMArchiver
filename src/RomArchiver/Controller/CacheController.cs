@@ -5,23 +5,23 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using RomArchiver.Domain.Objects;
-using RomLister;
 using SevenZip;
 
 namespace RomArchiver.Controller
 {
-    internal class CacheController : IDisposable
+    internal sealed class CacheController : IDisposable
     {
-        internal delegate void ProgressChangedHandler(int progress, string userFriendlyProgress);
+        internal delegate void ProgressChangedHandler(int progress, string? userFriendlyProgress);
         internal delegate void EmptyEventHandler();
 
-        internal event ProgressChangedHandler OnProgressChanged;
+        internal event ProgressChangedHandler? OnProgressChanged;
 
-        internal event EmptyEventHandler OnCacheLoadingStarted;
-        internal event EmptyEventHandler OnCacheLoadingAborted;
-        internal event EmptyEventHandler OnCacheLoadingCompleted;
+        internal event EmptyEventHandler? OnCacheLoadingStarted;
+        internal event EmptyEventHandler? OnCacheLoadingAborted;
+        internal event EmptyEventHandler? OnCacheLoadingCompleted;
 
         private readonly BackgroundWorker _backgroundWorker;
         private readonly string _offlineListCacheLocation;
@@ -123,9 +123,9 @@ namespace RomArchiver.Controller
             return output.ToString();
         }
 
-        private void BackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
+        private void BackgroundWorker_DoWork(object? sender, DoWorkEventArgs e)
         {
-            BackgroundWorker bgw = (BackgroundWorker)sender;
+            var bgw = (BackgroundWorker)sender!;
 
             if (!ProcessDirectory(bgw))
             {
@@ -144,25 +144,22 @@ namespace RomArchiver.Controller
 
         private bool ProcessDirectory(BackgroundWorker bgw)
         {
-            var progress = 0;
-            var userFriendlyProgress = string.Empty;
-            var filePath = string.Empty;
             var fileType = RomLister.Utils.Utils.GetFileTypeValue(RomType);
 
             var files = Directory.GetFiles(Path.Combine(_romLocation, fileType));
 
-            for (var i = 0; i < files.Length; i++)
+            for (var fileIndex = 0; fileIndex < files.Length; fileIndex++)
             {
                 if (bgw.CancellationPending)
                 {
                     return false;
                 }
 
-                progress = (int)(i / (float)files.Length * 100);
-                userFriendlyProgress = string.Format("{0}/{1}", i, files.Length);
+                var progress = (int)(fileIndex / (float)files.Length * 100);
+                var userFriendlyProgress = $"{fileIndex}/{files.Length}";
                 bgw.ReportProgress(progress, userFriendlyProgress);
 
-                filePath = files[i];
+                var filePath = files[fileIndex];
 
                 var datCacheEntity = new DatCacheEntity();
                 LoadSingleCache(filePath, datCacheEntity);
@@ -190,9 +187,9 @@ namespace RomArchiver.Controller
                 return;
             }
 
-            string[] subitems = line.Split(";".ToArray());
+            var subitems = line.Split(";".ToArray());
 
-            DatCacheEntity datCacheEntity = _datCacheEntities.FirstOrDefault(x => x.FilePath == subitems[0]);
+            var datCacheEntity = _datCacheEntities.FirstOrDefault(x => x.FilePath == subitems[0]);
             if (datCacheEntity != null)
             {
                 datCacheEntity.IsAltered = datCacheEntity.FilenameInArchive != subitems[1] || datCacheEntity.ModifyNo != Convert.ToUInt32(subitems[2]) || datCacheEntity.CompressedFileSize != (unchecked((int)Convert.ToInt64((subitems[3])))) || datCacheEntity.Crc != subitems[4];
@@ -240,7 +237,7 @@ namespace RomArchiver.Controller
             datCacheEntity.FilenameInArchive = archivedFilePath;
             datCacheEntity.ModifyNo = RomLister.Utils.Utils.CalculateModifyNumber(fileInfo.LastWriteTimeUtc);
 
-            datCacheEntity.CompressedFileSize = unchecked((Int32)(fileInfo.Length));
+            datCacheEntity.CompressedFileSize = unchecked((int)(fileInfo.Length));
             datCacheEntity.ArchiveType = fileInfo.Extension.Substring(1, fileInfo.Extension.Length - 1);
             datCacheEntity.Cleaned = true;
 
@@ -251,12 +248,12 @@ namespace RomArchiver.Controller
             }
         }
 
-        private void BackgroundWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        private void BackgroundWorker_ProgressChanged(object? sender, ProgressChangedEventArgs e)
         {
-            UpdateProgress(e.ProgressPercentage, (string)e.UserState);
+            UpdateProgress(e.ProgressPercentage, (string)e.UserState!);
         }
 
-        private void BackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        private void BackgroundWorker_RunWorkerCompleted(object? sender, RunWorkerCompletedEventArgs e)
         {
             if (e.Cancelled)
             {
@@ -265,7 +262,7 @@ namespace RomArchiver.Controller
             }
             else
             {
-                var entitiesAsJson =  System.Text.Json.JsonSerializer.Serialize<ConcurrentBag<DatCacheEntity>>(_datCacheEntities);
+                var entitiesAsJson =  JsonSerializer.Serialize(_datCacheEntities);
                 var currentDirectory = Path.GetFullPath(Directory.GetCurrentDirectory());
                 File.WriteAllText(Path.Combine(currentDirectory, "data.json"), entitiesAsJson);
                 
@@ -273,34 +270,30 @@ namespace RomArchiver.Controller
             }
         }
 
-        private void UpdateProgress(int progress, string userFriendlyProgress)
+        private void UpdateProgress(int progress, string? userFriendlyProgress)
         {
-            // Make sure someone is listening to event
             OnProgressChanged?.Invoke(progress, userFriendlyProgress);
         }
 
         private void Started()
         {
-            // Make sure someone is listening to event
             OnCacheLoadingStarted?.Invoke();
         }
 
         private void Aborted()
         {
-            // Make sure someone is listening to event
             OnCacheLoadingAborted?.Invoke();
         }
 
         private void Complete()
         {
-            // Make sure someone is listening to event
             OnCacheLoadingCompleted?.Invoke();
         }
 
         #region "IDisposable"
 
-        // Flag: Has Dispose already been called? 
-        private bool _disposed = false;
+        // Flag: Has Disposed already been called? 
+        private bool _disposed;
 
         // private implementation of Dispose pattern callable by consumers. 
         public void Dispose()
@@ -310,7 +303,7 @@ namespace RomArchiver.Controller
         }
 
         // Protected implementation of Dispose pattern. 
-        protected virtual void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
             if (_disposed)
                 return;

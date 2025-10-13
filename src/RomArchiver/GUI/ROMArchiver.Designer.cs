@@ -1,6 +1,6 @@
 ﻿namespace RomArchiver.GUI
 {
-    partial class MainForm
+    sealed partial class MainForm
     {
         /// <summary>
         /// Required designer variable.
@@ -67,7 +67,7 @@
             // 
             // InformationTextBox
             // 
-            InformationTextBox.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+            InformationTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) | System.Windows.Forms.AnchorStyles.Left) | System.Windows.Forms.AnchorStyles.Right));
             InformationTextBox.Location = new System.Drawing.Point(14, 146);
             InformationTextBox.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             InformationTextBox.Multiline = true;
@@ -91,7 +91,7 @@
             // 
             // RomTypeComboBox
             // 
-            RomTypeComboBox.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+            RomTypeComboBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) | System.Windows.Forms.AnchorStyles.Right));
             RomTypeComboBox.FormattingEnabled = true;
             RomTypeComboBox.Location = new System.Drawing.Point(211, 16);
             RomTypeComboBox.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
@@ -102,7 +102,7 @@
             // 
             // progressProgressBar
             // 
-            progressProgressBar.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+            progressProgressBar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) | System.Windows.Forms.AnchorStyles.Right));
             progressProgressBar.Location = new System.Drawing.Point(14, 47);
             progressProgressBar.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             progressProgressBar.Name = "progressProgressBar";
@@ -111,7 +111,7 @@
             // 
             // rearchiveProgressBar
             // 
-            rearchiveProgressBar.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+            rearchiveProgressBar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) | System.Windows.Forms.AnchorStyles.Right));
             rearchiveProgressBar.Location = new System.Drawing.Point(13, 113);
             rearchiveProgressBar.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             rearchiveProgressBar.Name = "rearchiveProgressBar";
@@ -143,7 +143,6 @@
             Controls.Add(progressProgressBar);
             Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             MinimumSize = new System.Drawing.Size(382, 386);
-            Name = "MainForm";
             Text = "Rom Archiver";
             Load += MainForm_Load;
             ResumeLayout(false);

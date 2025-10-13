@@ -1,4 +1,5 @@
 ﻿using System;
+using RomArchiver;
 
 namespace RomLister.Utils
 {

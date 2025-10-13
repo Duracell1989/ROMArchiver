@@ -7,29 +7,19 @@ namespace RomArchiver
     internal class SevenZipProcessor
     {
         internal delegate void ProgressChangedHandler(int progress, string userFriendlyProgress);
-        internal delegate void CompletedHandler();
         internal delegate void ExceptionOccuredHandler(string errorMessage);
         internal event ExceptionOccuredHandler OnExceptionOccured;
         internal event ProgressChangedHandler OnProgressChanged;
-        internal event CompletedHandler OnCompleted;
 
         internal void Cancel()
         {
-            if (_process != null)
-            {
-                _process.Kill();
-            }
+            _process.Kill();
         }
 
-        private Process _process;
+        private readonly Process _process;
         private IProcessInfo _processInfo;
 
         internal SevenZipProcessor()
-        {
-            Init();
-        }
-
-        private void Init()
         {
             _process = new Process();
             _process.StartInfo.UseShellExecute = false;
@@ -77,7 +67,7 @@ namespace RomArchiver
             {
                 var shouldBeProgress = e.Data.Substring(0, e.Data.IndexOf('%'));
 
-                if (int.TryParse(shouldBeProgress, out int progress))
+                if (int.TryParse(shouldBeProgress, out var progress))
                 {
                     UpdateProgress(progress, _processInfo.UserfriendlyProgress(progress)); // TODO: better user friendly message
                 }
@@ -87,19 +77,13 @@ namespace RomArchiver
         private void ExceptionOccured(string errorMessage)
         {
             // Make sure someone is listening to event
-            OnExceptionOccured?.Invoke(errorMessage);
+            OnExceptionOccured(errorMessage);
         }
 
         private void UpdateProgress(int progress, string userFriendlyProgress)
         {
             // Make sure someone is listening to event
-            OnProgressChanged?.Invoke(progress, userFriendlyProgress);
-        }
-
-        private void Complete()
-        {
-            // Make sure someone is listening to event
-            OnCompleted?.Invoke();
+            OnProgressChanged(progress, userFriendlyProgress);
         }
     }
 }

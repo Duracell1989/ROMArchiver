@@ -10,16 +10,16 @@ namespace RomArchiver.Controller
 {
     internal class RezController
     {
-        private delegate void ProgressChangedHandler(int progress, string userFriendlyProgress);
+        private delegate void ProgressChangedHandler(int progress, string? userFriendlyProgress);
         private delegate void RezCompletedHandler();
         private event ProgressChangedHandler OnProgressChanged;
         private event RezCompletedHandler OnRezLoadCompleted;
 
-        private string _offlineListCacheLocation = string.Empty;
-        private RomType _fileType;
+        private readonly string _offlineListCacheLocation;
+        private readonly RomType _fileType;
 
-        private BackgroundWorker _backgroundWorker;
-        private List<DatRezEntity> _datRezEntities;
+        private readonly BackgroundWorker _backgroundWorker;
+        private readonly List<DatRezEntity> _datRezEntities;
 
         private RezController(string offlineListCacheLocation, RomType fileType)
         {
@@ -45,19 +45,19 @@ namespace RomArchiver.Controller
             }
         }
 
-        private void backgroundWorker_DoWork(object sender, DoWorkEventArgs e)
+        private void backgroundWorker_DoWork(object? sender, DoWorkEventArgs e)
         {
-            string filePath = Path.Combine(_offlineListCacheLocation, RomLister.Utils.Utils.GetRezFileName(_fileType));
+            var filePath = Path.Combine(_offlineListCacheLocation, RomLister.Utils.Utils.GetRezFileName(_fileType));
             if (File.Exists(filePath))
             {
-                List<string> lines = File.ReadLines(Path.Combine(_offlineListCacheLocation, RomLister.Utils.Utils.GetRezFileName(_fileType))).ToList();
+                var lines = File.ReadLines(Path.Combine(_offlineListCacheLocation, RomLister.Utils.Utils.GetRezFileName(_fileType))).ToList();
 
-                for (int i = 0; i < lines.Count; i++)
+                for (var i = 0; i < lines.Count; i++)
                 {
                     _backgroundWorker.ReportProgress((int)(i / (float)lines.Count * 100));
 
-                    string[] items = lines[i].Split(';');
-                    DatRezEntity datRezEntity = new DatRezEntity();
+                    var items = lines[i].Split(';');
+                    var datRezEntity = new DatRezEntity();
 
                     datRezEntity.FilePath = items[0];
                     datRezEntity.ModifyNo = Convert.ToUInt32(items[1]);
@@ -70,32 +70,24 @@ namespace RomArchiver.Controller
             }
         }
 
-        private void backgroundWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        private void backgroundWorker_ProgressChanged(object? sender, ProgressChangedEventArgs e)
         {
-            UpdateProgress(e.ProgressPercentage, (string)e.UserState);
+            UpdateProgress(e.ProgressPercentage, (string)e.UserState!);
         }
 
-        private void backgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        private void backgroundWorker_RunWorkerCompleted(object? sender, RunWorkerCompletedEventArgs e)
         {
             Complete();
         }
 
-        private void UpdateProgress(int progress, string userFriendlyProgress)
+        private void UpdateProgress(int progress, string? userFriendlyProgress)
         {
-            // Make sure someone is listening to event
-            if (OnProgressChanged != null)
-            {
-                OnProgressChanged(progress, userFriendlyProgress);
-            }
+            OnProgressChanged(progress, userFriendlyProgress);
         }
 
         private void Complete()
         {
-            // Make sure someone is listening to event
-            if (OnRezLoadCompleted != null)
-            {
-                OnRezLoadCompleted();
-            }
+            OnRezLoadCompleted();
         }
     }
 }

@@ -1,37 +1,30 @@
 ﻿using System;
+using RomLister;
 
-namespace RomLister
+namespace RomArchiver
 {
     internal static class RomTypeExtensions
     {
         internal static string GetExtension(this RomType romTypeEnum)
         {
-            switch (romTypeEnum)
+            return romTypeEnum switch
             {
-                case RomType.GBA:
-                    return "gba";
-                case RomType.NDS:
-                    return "nds";
-                case RomType.THREEDS:
-                    return "3ds";
-                default:
-                    throw new NotSupportedException();
-            }
+                RomType.GBA => "gba",
+                RomType.NDS => "nds",
+                RomType.THREEDS => "3ds",
+                _ => throw new NotSupportedException()
+            };
         }
 
         internal static string GetUserFriendlyName(this RomType romTypeEnum)
         {
-            switch (romTypeEnum)
+            return romTypeEnum switch
             {
-                case RomType.GBA:
-                    return "GBA";
-                case RomType.NDS:
-                    return "NDS";
-                case RomType.THREEDS:
-                    return "3DS";
-                default:
-                    throw new NotSupportedException();
-            }
+                RomType.GBA => "GBA",
+                RomType.NDS => "NDS",
+                RomType.THREEDS => "3DS",
+                _ => throw new NotSupportedException()
+            };
         }
     }
 }

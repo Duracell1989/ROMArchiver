@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Text;
 using System.Windows.Forms;
 using RomArchiver.Controller;
 using RomArchiver.Domain.Objects;
 using RomArchiver.Utils.Extensions;
-using RomLister;
 
 namespace RomArchiver.GUI
 {
-    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-    internal partial class MainForm : Form
+    [SupportedOSPlatform("windows")]
+    internal sealed partial class MainForm : Form
     {
         private CacheController _cacheController;
         private ArchiveController _archiveController;
@@ -19,7 +19,7 @@ namespace RomArchiver.GUI
         internal MainForm()
         {
             InitializeComponent();
-            this.Text = $"Rom Archiver {System.Reflection.Assembly.GetEntryAssembly().GetName().Version}";
+            Text = @"Rom Archiver";
             progressInformationLabel.Text = string.Empty;
             rearchiveProgressInformationLabel.Text = string.Empty;
         }
@@ -73,7 +73,7 @@ namespace RomArchiver.GUI
 
         private void RearchiveButton_Click(object sender, EventArgs e)
         {
-            if (_cacheController == null || _cacheController.DatCacheEntities.Count() == 0)
+            if (!_cacheController.DatCacheEntities.Any())
             {
                 MessageBox.Show("Please load cache first.");
             }
@@ -111,7 +111,7 @@ namespace RomArchiver.GUI
         {
             if (progressProgressBar.InvokeRequired)
             {
-                progressProgressBar.Invoke(new Action<int>(SetProgressBar), new object[] { progress });
+                progressProgressBar.Invoke(new Action<int>(SetProgressBar), progress);
                 return;
             }
             progressProgressBar.Value = progress;
@@ -178,7 +178,7 @@ namespace RomArchiver.GUI
             _cacheController.WriteCache();
         }
 
-        private void _cacheController_OnProgressChanged(int progress, string userFriendlyProgress)
+        private void _cacheController_OnProgressChanged(int progress, string? userFriendlyProgress)
         {
             var message = $"Reading {_cacheController.RomType.GetUserFriendlyName()} cache...{userFriendlyProgress}";
             progressInformationLabel.Text = message;
@@ -295,7 +295,7 @@ namespace RomArchiver.GUI
         {
             if (InvokeRequired)
             {
-                Invoke(new Action<int>(ArchiveController_OnRearchiveOverallStarted), new object[] { filesToRearchive });
+                Invoke(new Action<int>(ArchiveController_OnRearchiveOverallStarted), filesToRearchive);
                 return;
             }
 

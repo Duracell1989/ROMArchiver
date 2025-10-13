@@ -1,86 +1,31 @@
-﻿using System;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace RomArchiver.Domain.Objects
 {
     internal class DatCacheEntity
     {
-        private string _filePath;
-        private string _archivedFilePath;
-        private Int32 _compressedFileSize;
-        private UInt32 _ModifyNo;
-        private string _crc;
-        private string _archiveType;
-        private Boolean _cleaned;
-        private Boolean _isArchived;
-        private Boolean _isAltered;
-        private UInt64 _fileSize;
+        internal string FilePath { get; set; }
 
-        internal string FilePath
-        {
-            get { return _filePath; }
-            set { _filePath = value; }
-        }
+        internal string FilenameInArchive { get; set; }
 
-        internal string FilenameInArchive
-        {
-            get { return _archivedFilePath; }
-            set { _archivedFilePath = value; }
-        }
+        internal int CompressedFileSize { get; set; }
 
-        internal Int32 CompressedFileSize
-        {
-            get { return _compressedFileSize; }
-            set { _compressedFileSize = value; }
-        }
-
-        internal UInt32 ModifyNo
-        {
-            get { return _ModifyNo; }
-            set { _ModifyNo = value; }
-        }
+        internal uint ModifyNo { get; set; }
 
         [JsonPropertyName("CRC")]
-        public string Crc
-        {
-            get { return _crc; }
-            set { _crc = value; }
-        }
+        public string Crc { get; set; }
 
-        internal string ArchiveType
-        {
-            get { return _archiveType; }
-            set { _archiveType = value; }
-        }
+        internal string ArchiveType { get; set; }
 
-        internal Boolean Cleaned
-        {
-            get { return _cleaned; }
-            set { _cleaned = value; }
-        }
+        internal bool Cleaned { get; set; }
 
-        internal string CleanedValue
-        {
-            get { return _cleaned ? "clean" : string.Empty; }
-        }
+        internal string CleanedValue => Cleaned ? "clean" : string.Empty;
 
-        internal Boolean IsArchived
-        {
-            get { return _isArchived; }
-            set { _isArchived = value; }
-        }
+        internal bool IsArchived { get; set; }
 
-        internal Boolean IsAltered
-        {
-            get { return _isAltered; }
-            set { _isAltered = value; }
-        }
+        internal bool IsAltered { get; set; }
 
-        internal UInt64 FileSize
-        {
-            get { return _fileSize; }
-            set { _fileSize = value; }
-        }
+        internal ulong FileSize { get; set; }
 
         public DatCacheEntity()
         {

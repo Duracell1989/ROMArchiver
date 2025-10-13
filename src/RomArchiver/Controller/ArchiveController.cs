@@ -1,15 +1,15 @@
-﻿using RomLister;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using RomArchiver.Domain;
 using RomArchiver.Domain.Objects;
+using static System.String;
 
 namespace RomArchiver.Controller
 {
-    internal class ArchiveController : IDisposable
+    internal sealed class ArchiveController : IDisposable
     {
         internal delegate void ProgressChangedHandler(int progress, string userFriendlyProgress);
         internal delegate void EmptyEventHandler();
@@ -19,33 +19,24 @@ namespace RomArchiver.Controller
         internal delegate void RearchiveCompletedHandler(DatCacheEntity datCacheEntity, long oldFileSize, long newFileSize);
         internal delegate void RearchiveOverallStartedHandler(int filesToRearchive);
 
-        internal event ProgressChangedHandler OnProgressChanged;
-        internal event ProgressChangedHandler OnOverallProgressChanged;
+        internal event ProgressChangedHandler? OnProgressChanged;
+        internal event ProgressChangedHandler? OnOverallProgressChanged;
 
-        internal event ExceptionOccuredHandler OnExceptionOccured;
-        internal event RearchiveOverallStartedHandler OnRearchiveOverallStarted;
-        internal event EmptyEventHandler OnRearchiveOverallAborted;
-        internal event EmptyEventHandler OnRearchiveOverallCompleted;
-        internal event RearchiveHandler OnRearchiveStarted;
-        internal event RearchiveCompletedHandler OnRearchiveCompleted;
+        internal event ExceptionOccuredHandler? OnExceptionOccured;
+        internal event RearchiveOverallStartedHandler? OnRearchiveOverallStarted;
+        internal event EmptyEventHandler? OnRearchiveOverallAborted;
+        internal event EmptyEventHandler? OnRearchiveOverallCompleted;
+        internal event RearchiveHandler? OnRearchiveStarted;
+        internal event RearchiveCompletedHandler? OnRearchiveCompleted;
 
-        private BackgroundWorker _backgroundWorker;
+        private readonly BackgroundWorker _backgroundWorker;
 
-        private SevenZipProcessor _sevenZipProcessor;
-        private IEnumerable<DatCacheEntity> _datCacheEntities;
+        private SevenZipProcessor? _sevenZipProcessor;
+        private IEnumerable<DatCacheEntity>? _datCacheEntities;
 
-        internal bool IsArchiving
-        {
-            get
-            {
-                return _backgroundWorker.IsBusy;
-            }
-        }
+        internal bool IsArchiving => _backgroundWorker.IsBusy;
 
-        internal bool IsAbortPending
-        {
-            get { return _backgroundWorker.CancellationPending; }
-        }
+        internal bool IsAbortPending => _backgroundWorker.CancellationPending;
 
 
         internal ArchiveController()
@@ -54,16 +45,16 @@ namespace RomArchiver.Controller
             _backgroundWorker.WorkerReportsProgress = true;
             _backgroundWorker.WorkerSupportsCancellation = true;
             _backgroundWorker.DoWork += backgroundWorker_DoWork;
-            _backgroundWorker.ProgressChanged += backgroundWorker_ProgressChanged;
-            _backgroundWorker.RunWorkerCompleted += backgroundWorker_RunWorkerCompleted;
+            _backgroundWorker.ProgressChanged += BackgroundWorker_ProgressChanged;
+            _backgroundWorker.RunWorkerCompleted += BackgroundWorker_RunWorkerCompleted;
         }
 
-        internal void Rearchive(List<DatCacheEntity> DatCacheEntities)
+        internal void Rearchive(List<DatCacheEntity> datCacheEntities)
         {
             if (!_backgroundWorker.IsBusy)
             {
-                _datCacheEntities = DatCacheEntities;
-                RearchiveOverallStarted(DatCacheEntities.Count());
+                _datCacheEntities = datCacheEntities;
+                RearchiveOverallStarted(datCacheEntities.Count);
                 _backgroundWorker.RunWorkerAsync();
             }
         }
@@ -72,28 +63,27 @@ namespace RomArchiver.Controller
         {
             if (_backgroundWorker.IsBusy)
             {
-                _sevenZipProcessor.Cancel();
+                _sevenZipProcessor?.Cancel();
                 _backgroundWorker.CancelAsync();
             }
         }
 
 
-        private void backgroundWorker_DoWork(object sender, DoWorkEventArgs e)
+        private void backgroundWorker_DoWork(object? sender, DoWorkEventArgs e)
         {
-            int progress = 0;
-            int totalCount = _datCacheEntities.Count();
+            var totalCount = _datCacheEntities.Count();
 
-            BackgroundWorker bgw = (BackgroundWorker)sender;
+            var bgw = (BackgroundWorker)sender!;
 
-            for (int i = 0; i < totalCount; i++)
+            for (var i = 0; i < totalCount; i++)
             {
-                DatCacheEntity datCacheEntity = _datCacheEntities.ElementAt(i);
+                var datCacheEntity = _datCacheEntities.ElementAt(i);
                 RearchiveStarted(datCacheEntity);
                 
                 var oldFileSize = datCacheEntity.CompressedFileSize;
                 
-                progress = (int)(i / (float)totalCount * 100);
-                OverallProgressChanged(progress, string.Format("{0}/{1}", i, totalCount));
+                var progress = (int)(i / (float)totalCount * 100);
+                OverallProgressChanged(progress, $"{i}/{totalCount}");
 
                 if (bgw.CancellationPending)
                 {
@@ -105,12 +95,11 @@ namespace RomArchiver.Controller
                 _sevenZipProcessor = new SevenZipProcessor();
                 _sevenZipProcessor.OnExceptionOccured += _sevenZipProcessor_OnExceptionOccured;
                 _sevenZipProcessor.OnProgressChanged += _sevenZipProcessor_OnProgressChanged;
-                _sevenZipProcessor.OnCompleted += _sevenZipProcessor_OnCompleted;
 
-                IProcessInfo decomprocessInfo = new DecompressInfo(datCacheEntity.FilePath, ConfigReader.Instance.WorkingDirectory);
-                _sevenZipProcessor.Run(decomprocessInfo);
+                IProcessInfo decompressInfo = new DecompressInfo(datCacheEntity.FilePath, ConfigReader.Instance.WorkingDirectory);
+                _sevenZipProcessor.Run(decompressInfo);
 
-                string extractedFilePath = Path.Combine(ConfigReader.Instance.WorkingDirectory, datCacheEntity.FilenameInArchive);
+                var extractedFilePath = Path.Combine(ConfigReader.Instance.WorkingDirectory, datCacheEntity.FilenameInArchive);
 
                 if (bgw.CancellationPending)
                 {
@@ -120,7 +109,6 @@ namespace RomArchiver.Controller
                 _sevenZipProcessor = new SevenZipProcessor();
                 _sevenZipProcessor.OnExceptionOccured += _sevenZipProcessor_OnExceptionOccured;
                 _sevenZipProcessor.OnProgressChanged += _sevenZipProcessor_OnProgressChanged;
-                _sevenZipProcessor.OnCompleted += _sevenZipProcessor_OnCompleted;
 
                 IProcessInfo compressInfo = new CompressInfo(extractedFilePath, datCacheEntity.FilePath, ConfigReader.Instance.WorkingDirectory);
                 _sevenZipProcessor.Run(compressInfo);
@@ -153,18 +141,12 @@ namespace RomArchiver.Controller
             ProgressChanged(progress, userFriendlyProgress);
         }
 
-        private void _sevenZipProcessor_OnCompleted()
+        private static void BackgroundWorker_ProgressChanged(object? sender, ProgressChangedEventArgs e)
         {
-            string foo = string.Empty;
+            var foo = Empty;
         }
 
-
-        private void backgroundWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
-        {
-            string foo = string.Empty;
-        }
-
-        private void backgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        private void BackgroundWorker_RunWorkerCompleted(object? sender, RunWorkerCompletedEventArgs e)
         {
             if (e.Error != null)
             {
@@ -183,79 +165,48 @@ namespace RomArchiver.Controller
         private void ExceptionOccured(string errorMessage)
         {
             // Make sure someone is listening to event
-            if (OnExceptionOccured != null)
-            {
-                OnExceptionOccured(errorMessage);
-            }
+            OnExceptionOccured?.Invoke(errorMessage);
         }
 
         private void ProgressChanged(int progress, string userFriendlyProgress)
         {
-            // Make sure someone is listening to event
-            if (OnProgressChanged != null)
-            {
-                OnProgressChanged(progress, userFriendlyProgress);
-            }
+            OnProgressChanged?.Invoke(progress, userFriendlyProgress);
         }
 
         private void OverallProgressChanged(int progress, string userFriendlyProgress)
         {
-            // Make sure someone is listening to event
-            if (OnOverallProgressChanged != null)
-            {
-                OnOverallProgressChanged(progress, userFriendlyProgress);
-            }
+            OnOverallProgressChanged?.Invoke(progress, userFriendlyProgress);
         }
 
         private void RearchiveOverallStarted(int filesToRearchive)
         {
-            // Make sure someone is listening to event
-            if (OnRearchiveOverallStarted != null)
-            {
-                OnRearchiveOverallStarted(filesToRearchive);
-            }
+            OnRearchiveOverallStarted?.Invoke(filesToRearchive);
         }
 
         private void RearchiveOverallAborted()
         {
-            // Make sure someone is listening to event
-            if (OnRearchiveOverallAborted != null)
-            {
-                OnRearchiveOverallAborted();
-            }
+            OnRearchiveOverallAborted?.Invoke();
         }
 
         private void RearchiveOverallCompleted()
         {
-            // Make sure someone is listening to event
-            if (OnRearchiveOverallCompleted != null)
-            {
-                OnRearchiveOverallCompleted();
-            }
+            OnRearchiveOverallCompleted?.Invoke();
         }
 
         private void RearchiveStarted(DatCacheEntity datCacheEntity)
         {
-            // Make sure someone is listening to event
-            if (OnRearchiveStarted != null)
-            {
-                OnRearchiveStarted(datCacheEntity);
-            }
+            OnRearchiveStarted?.Invoke(datCacheEntity);
         }
 
         private void RearchiveCompleted(DatCacheEntity datCacheEntity, long oldFileSize, long newFileSize)
         {
-            // Make sure someone is listening to event
-            if (OnRearchiveCompleted != null)
-            {
-                OnRearchiveCompleted(datCacheEntity, oldFileSize, newFileSize);
-            }
+            OnRearchiveCompleted?.Invoke(datCacheEntity, oldFileSize, newFileSize);
         }
 
         #region "IDisposable"
 
-        // Flag: Has Dispose already been called? 
-        bool disposed = false;
+        // Flag: Has Disposed already been called? 
+        private bool _disposed = false;
 
         // private implementation of Dispose pattern callable by consumers. 
         public void Dispose()
@@ -265,9 +216,9 @@ namespace RomArchiver.Controller
         }
 
         // Protected implementation of Dispose pattern. 
-        protected virtual void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
-            if (disposed)
+            if (_disposed)
                 return;
 
             if (disposing)
@@ -276,15 +227,14 @@ namespace RomArchiver.Controller
                 if (_backgroundWorker != null)
                 {
                     _backgroundWorker.DoWork -= backgroundWorker_DoWork;
-                    _backgroundWorker.ProgressChanged -= backgroundWorker_ProgressChanged;
-                    _backgroundWorker.RunWorkerCompleted -= backgroundWorker_RunWorkerCompleted;
+                    _backgroundWorker.ProgressChanged -= BackgroundWorker_ProgressChanged;
+                    _backgroundWorker.RunWorkerCompleted -= BackgroundWorker_RunWorkerCompleted;
                     _backgroundWorker.Dispose();
                 }
             }
 
             // Free any unmanaged objects here. 
-            //
-            disposed = true;
+            _disposed = true;
         }
 
         #endregion
